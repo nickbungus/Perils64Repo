@@ -14,9 +14,12 @@ unsigned char maxWillies;//number of willies available
 
 void initWilly(void)
 {
-    POKE(SPRITE_ENABLE_REGISTER, 1);
-    POKE(SPRITE_X_0, WILLY_START_X);
-    POKE(SPRITE_Y_0, WILLY_START_Y);
+    willyXpos = WILLY_START_X;
+    willyYpos = WILLY_START_Y;
+
+    POKE(SPRITE_ENABLE_REGISTER, 1);  // Shows willy but also hides all other sprites
+    POKE(SPRITE_X_0, willyXpos);
+    POKE(SPRITE_Y_0, willyYpos);
     POKE(SPRITE_BASE_POINTER, 112);
 }
 void printWilly(void)
