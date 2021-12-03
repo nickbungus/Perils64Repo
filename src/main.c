@@ -4,6 +4,7 @@
 
 unsigned char main(void) 
 {
+    
     initScreen();
     drawLogo();
 
@@ -15,6 +16,8 @@ unsigned char main(void)
             
         }
         animateCurrentScreen();
+        willyControl();
+        printWilly();
     }
     return 0;
 }

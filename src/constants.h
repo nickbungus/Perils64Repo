@@ -18,6 +18,14 @@
 #define SPRITE_ENABLE_MULTICOLOUR D01C
 #define SPRITE_BASE_POINTER 0x43F8
 
+#define TRUE 1
+#define FALSE 0
+
+#define DEAD 255
+
+#define SPRITE_X_OFFSET 24
+#define SPRITE_Y_OFFSET 50
+
 #define SPRITE_X_0 0xD000
 #define SPRITE_X_1 0xD002
 #define SPRITE_X_2 0xD004
@@ -36,6 +44,8 @@
 #define SPRITE_Y_6 0xD00D
 #define SPRITE_Y_7 0xD00F
 
+#define JOYSTICK_PORT_2 56320
+
 #define BLACK  0
 #define WHITE  1
 #define RED  2
@@ -52,5 +62,8 @@
 #define LIGHT_GREEN  13
 #define LIGHT_BLUE  14
 #define LIGHT_GREY  15
+
+#define RIGHT 0
+#define LEFT 1
 
 #endif

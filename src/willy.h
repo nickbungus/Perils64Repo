@@ -4,4 +4,5 @@
     
     void initWilly(void);
     void printWilly(void);
+    unsigned char willyControl(void);
 #endif

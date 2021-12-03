@@ -20,6 +20,9 @@ unsigned char screenAnimCounter = 0;
 unsigned char level1[] = {1,23 ,0,3 ,26,1 ,0,4 ,26,1 ,0,6 ,26,1 ,0,4 ,1,2 ,0,20 ,1,2 ,0,2 ,2,15 ,5,2 ,3,1 ,1,2 ,0,15 ,26,1 ,0,4 ,1,2 ,5,1 ,0,19 ,1,2 ,26,1 ,0,9 ,8,1 ,11,8 ,14,1 ,1,2 ,4,1 ,0,19 ,1,2 ,0,12 ,26,1 ,0,5 ,4,2 ,1,2 ,3,11 ,0,9 ,1,2 ,26,1 ,0,17 ,4,2 ,1,2 ,0,20 ,1,2 ,20,4 ,23,1 ,0,3 ,4,10 ,0,2 ,1,2 ,0,20 ,1,2 ,3,1 ,0,19 ,1,2 ,0,19 ,26,1 ,1,2 ,4,3 ,0,5 ,4,7 ,0,5 ,1,2 ,0,19 ,4,1 ,1,2 ,4,2 ,0,18 ,1,2 ,0,16 ,3,4 ,1,23,255};
 unsigned char level2[] = {1,23 ,0,9 ,26,1 ,0,10 ,1,2 ,0,20 ,1,2 ,0,20 ,1,2 ,0,20 ,1,2 ,0,15 ,26,1 ,0,4 ,1,2 ,0,6 ,8,1 ,11,6 ,14,1 ,4,1 ,0,5 ,1,2 ,0,9 ,26,1 ,0,10 ,1,2 ,0,2 ,3,3 ,0,15 ,1,2 ,0,19 ,26,1 ,1,2 ,3,1 ,0,6 ,4,6 ,0,7 ,1,2 ,26,1 ,0,19 ,1,2 ,0,13 ,8,1 ,11,3 ,14,1 ,0,2 ,1,2 ,0,20 ,1,2 ,3,4 ,0,15 ,3,1 ,1,2 ,0,20 ,1,2 ,26,1 ,0,3 ,3,9 ,0,6 ,3,1 ,1,2 ,0,9 ,2,1 ,0,10 ,1,2 ,3,1 ,0,8 ,2,1 ,0,3 ,3,4 ,0,3 ,1,2 ,0,9 ,2,1 ,26,1 ,0,9 ,1,23,255};
 
+unsigned char* levels[] = {level1, level2};
+unsigned char levelIndex = 1;
+
 unsigned char hiScore[] = {61, 36, 34, 35, 0, 72, 30, 42, 45, 32};
 
 unsigned char logo[] = { 0xF8,0xF7,0x9D,0x9E,0x9F,0xA0,0xF8,0xF8,0xF8,0xF8,0xF8,0xA1,0xA2,0xA3,0xA4,0xA5,
@@ -34,7 +37,7 @@ unsigned char logo[] = { 0xF8,0xF7,0x9D,0x9E,0x9F,0xA0,0xF8,0xF8,0xF8,0xF8,0xF8,
  0xF8,0xF8,0xF5,0xF6,0x9C,0xF8,0xF8,0xF8,0xF8,0xF8,0xF8,0xF8,0xF8,0xF8,0x9B,0xF8};
     unsigned char x = 0, y = 0;
 
-    unsigned char levelIndex = 0;
+    unsigned char sharedDrawingIndex = 0;
     unsigned int lineAddress = 0x4000;
     unsigned int colourAddress = COLOUR_RAM;
 
@@ -46,8 +49,8 @@ unsigned char logo[] = { 0xF8,0xF7,0x9D,0x9E,0x9F,0xA0,0xF8,0xF8,0xF8,0xF8,0xF8,
 
 void initScreen(void)
 {    
+    unsigned char *currentLevelChar = levels[levelIndex];// levels+levelIndex;
     
-
     for (i = 0; i < 64;++i)
     {
         travelatorChars[i]= 0;    
@@ -73,13 +76,14 @@ void initScreen(void)
     POKE(MULTI_COLOUR1, DARK_GREY);
     POKE(MULTI_COLOUR2, ORANGE);
 
-    charRead = level1[levelIndex];
-    levelIndex++;
+    charRead = *(currentLevelChar); 
+    
+    currentLevelChar++;
     
     while (charRead != 255)
     {           
-        charCount = level1[levelIndex];
-        levelIndex++;
+        charCount = *(currentLevelChar);
+        currentLevelChar++;
         for (i = 0 ; i < charCount ; i++)
         {
             currentScreenLoc = lineAddress + xIndex;
@@ -106,8 +110,8 @@ void initScreen(void)
             }
         }
 
-        charRead = level1[levelIndex];
-        levelIndex++;
+        charRead = *(currentLevelChar);
+        currentLevelChar++;
     }
 }
 
@@ -116,15 +120,15 @@ void drawLogo(void)
     colourAddress = 55376+64;
     lineAddress = 0x4050 + 64;
     xIndex = 0;
-    levelIndex = 0;
+    sharedDrawingIndex = 0;
     for (y = 0; y < 16; y++)
     {
           for (x = 0; x < 10; x++) 
           {
-              charRead = logo[levelIndex];
+              charRead = logo[sharedDrawingIndex];
               POKE(lineAddress + xIndex, charRead);
               POKE(colourAddress + xIndex, *(ptr+charRead));
-              levelIndex++;
+              sharedDrawingIndex++;
               xIndex++;
           }
           lineAddress = lineAddress + 40;
