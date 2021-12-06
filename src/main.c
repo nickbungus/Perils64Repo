@@ -15,9 +15,11 @@ unsigned char main(void)
         {
             
         }
+        POKE(53280, 1);
         animateCurrentScreen();
         willyControl();
         printWilly();
+        POKE(53280, 0);
     }
     return 0;
 }

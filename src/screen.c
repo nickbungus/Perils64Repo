@@ -182,33 +182,35 @@ void drawLogo(void)
 void animateCurrentScreen(void)
 {
     screenAnimCounter++;
-    if (screenAnimCounter < 6)
-        return;
-
-    screenAnimCounter = 0;
-
-    ++travelatorFrame;
-    if (travelatorFrame > 2)
-        travelatorFrame = 0;
-
-    for (i = 0; i < travelatorCount ; i++)
+    if (screenAnimCounter == 3)
     {
-        currentScreenLoc = travelatorLocations[i];
-        charRead = travelatorChars[i];
-        
-        POKE(currentScreenLoc,charRead+travelatorFrame );
-    }
-    for (i = 0; i < 8 ; i++)
-    {
-        if (noteAvailable[i] == 1)
+        ++travelatorFrame;
+        if (travelatorFrame > 2)
+            travelatorFrame = 0;
+
+        for (i = 0; i < travelatorCount; i++)
         {
-            // resusing charRead for colour
-            charRead = PEEK(noteColourLocations[i]);
-            ++charRead;
-            if (charRead == 4)
-                charRead = 0;
-            
-            POKE(noteColourLocations[i], charRead);
+            currentScreenLoc = travelatorLocations[i];
+            charRead = travelatorChars[i];
+
+            POKE(currentScreenLoc, charRead + travelatorFrame);
         }
+    }
+    else if (screenAnimCounter == 6)
+    {
+        for (i = 0; i < 8; i++)
+        {
+            if (noteAvailable[i] == 1)
+            {
+                // resusing charRead for colour
+                charRead = PEEK(noteColourLocations[i]);
+                ++charRead;
+                if (charRead == 4)
+                    charRead = 0;
+
+                POKE(noteColourLocations[i], charRead);
+            }
+        }
+        screenAnimCounter = 0;
     }
 }
