@@ -91,8 +91,8 @@ unsigned char willyControl(void)
     unsigned char oldXpos, oldYpos;
     unsigned int peekAddress;
 
-    unsigned char y = (willyYpos - SPRITE_Y_OFFSET + 5) / 8;
-    unsigned char x = (willyXpos - SPRITE_X_OFFSET + 8) / 8;
+    unsigned char y = (willyYpos - SPRITE_Y_OFFSET + 5) >> 3;
+    unsigned char x = (willyXpos - SPRITE_X_OFFSET + 8) >> 3;
 
     peekAddress = 0x4000 + (y * 40) + x;
 
@@ -203,6 +203,7 @@ unsigned char willyControl(void)
 
     } //end control
 
+    oldYpos = willyYpos;
     if (jump)
     {
         ++jumpCounter;
@@ -235,8 +236,8 @@ unsigned char willyControl(void)
     //Have we gone too far right
     if (willyXpos > oldXpos)
     {
-        y = (willyYpos - SPRITE_Y_OFFSET + 5) / 8;
-        x = (willyXpos - SPRITE_X_OFFSET + 16) / 8;
+        y = (willyYpos - SPRITE_Y_OFFSET + 5)  >> 3;
+        x = (willyXpos - SPRITE_X_OFFSET + 16)  >> 3;
 
         peekAddress = 0x4000 + (y * 40) + x;
 
@@ -259,8 +260,8 @@ unsigned char willyControl(void)
     //Have we gone too far right
     if (willyXpos < oldXpos)
     {
-        y = (willyYpos - SPRITE_Y_OFFSET + 5) / 8;
-        x = (willyXpos - SPRITE_X_OFFSET + 9) / 8;
+        y = (willyYpos - SPRITE_Y_OFFSET + 5)  >> 3;
+        x = (willyXpos - SPRITE_X_OFFSET + 9)  >> 3;
 
         peekAddress = 0x4000 + (y * 40) + x;
 
@@ -275,4 +276,8 @@ unsigned char willyControl(void)
     }
     if (left)
         willyFrameNo = LeftFrames[willyXpos & 7];
+
+    // if (willyYpos < oldYpos)
+    //     if (topLeftChar == 1 || topLeftChar == 2 || topRightChar == 1 || topRightChar == 2)
+    //         willyYpos = oldYpos;
 }
