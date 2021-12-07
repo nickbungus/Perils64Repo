@@ -40,6 +40,11 @@ unsigned char DISINTERGRATE2 = 6;
 unsigned char DISINTERGRATE3 = 7;
 unsigned char NOTE = 26;
 
+unsigned char LEFT_TRAV_MIN = 8;
+unsigned char LEFT_TRAV_MAX = 16;
+unsigned char RIGHT_TRAV_MIN = 17;
+unsigned char RIGHT_TRAV_MAX = 25;
+
 unsigned char RightFrames[] = {0, 0, 1, 1, 2, 2, 1, 1, 255};
 unsigned char LeftFrames[] = {3, 3, 4, 4, 5, 5, 4, 4, 255};
 // Control Variables
@@ -83,6 +88,7 @@ unsigned char willyControl(void)
     unsigned int leftAvailable = TRUE;
     
     unsigned char topLeftChar, topRightChar, middleLeftChar, middleRightChar, bottomLeftChar, bottomRightChar;
+    unsigned char oldXpos, oldYpos;
     unsigned int peekAddress;
 
     unsigned char y = (willyYpos - SPRITE_Y_OFFSET + 5) / 8;
@@ -137,86 +143,57 @@ unsigned char willyControl(void)
         bottomRightChar = BLANK;
     }
 
-    modY = willyYpos & MOD_Y_TARGET;
-    // Windows version checked the mod to only test for falling every 8 Y Pos using the modY - removed for now - might be needed for speed later
-    if ( ascent == FALSE  && modY == MOD_Y_TARGET)//test for falling
+    modY = willyYpos & 7;
+    if (ascent == FALSE && modY == MOD_Y_TARGET) //test for falling
     {
-	    if  ( ( bottomLeftChar == 0) && ( bottomRightChar == 0) )//your not standing on anything
+        if ((bottomLeftChar == 0) && (bottomRightChar == 0)) //your not standing on anything
         {
-			if (jump==FALSE)	
-				left = right = FALSE;
-			
-			control = FALSE;				
+            if (jump == FALSE)
+                left = right = FALSE;
+
+            control = FALSE;
             falling = TRUE;
-				
         }
-		else
-        {	
-            falling  = FALSE;
-			control = TRUE;
+        else
+        {
+            falling = FALSE;
+            control = TRUE;
             jumpIncrement = 2;
-                
+
             if (fallCounter > 24)
             {
-                fallCounter = 0;//reset the counter
-
+                fallCounter = 0; //reset the counter
 
                 //  THIS NEEDS TO COME BACK!!
-				//return DEAD;
-                //  
-
-
-            }//Willy is dead
-
+                //return DEAD;
+                //
+            } //Willy is dead
             fallCounter = 0;
         }
     }
 
-	if (falling == TRUE && jump == FALSE)
-	{	
+    if (falling == TRUE && jump == FALSE)
+    {
         willyYpos += 1;
         fallCounter += 1;
-	}
+    }
+
+    oldXpos = willyXpos;
+    oldYpos = willyYpos;
 
     if (control) // is willy in a state where player has control
     {
-        //look for a change of direction and make sure willy
-        //   sprite frame is true to original
-        if ((joyStickLeft() && willyDirection == RIGHT) || (joyStickRight() && willyDirection == LEFT))
-        {
-            
-            if (willyFrameNo <= 0)
-                willyFrameNo = 1;
-
-            if (willyFrameNo >= 4)
-                willyFrameNo = 1;
-        }
-
-        left = right = jump = 0; //reset the modes
+        jump =left = right = FALSE;
 
         if (joyStickLeft()) // is player selecting to go left
             left = TRUE;
 
         if (joyStickRight()) //right
-            right = TRUE;     
+            right = TRUE;
 
-        
-        /////////////Jump Not Available
-        jumpReady = TRUE;
-        
-        //if ((l[lev][getX][getY - 3] == 1) || (l[lev][getX][getY - 3] == 2) || (l[lev][getX - 1][getY - 3] == 1) || (l[lev][getX - 1][getY - 3] == 2) && modY == 0)
-        if ((modY == 5) && (topLeftChar == 1 || topLeftChar == 2 || topRightChar == 1 || topRightChar == 2))        
-            jumpReady = FALSE;
+        //jumpReady = TRUE;
 
-        // //but what if i wanna jump left and I`m hemmed in
-        // if (topRightChar >= 1 && l[lev][getX][getY - 3] <= 2 && l[lev][getX - 1][getY - 3] != 2 && left)
-        //     jumpReady = TRUE;
-
-        // //and what if a wanna go right
-        // if (l[lev][getX - 1][getY - 3] >= 1 && l[lev][getX - 1][getY - 3] <= 2 && l[lev][getX][getY - 3] != 2 && right)
-        //     jumpReady = TRUE;
-
-        if (joyStickFire() && jumpReady) //or trying to jump
+        if (joyStickFire()) //or trying to jump
         {
             jump = TRUE;     //start jump
             control = FALSE; //give up control
@@ -227,219 +204,75 @@ unsigned char willyControl(void)
     } //end control
 
     if (jump)
-    {   
+    {
         ++jumpCounter;
         if (jumpCounter <= 18)
         {
             //if (jumpCounter & 1 == 1)
-                --willyYpos;
+            --willyYpos;
         }
-        else if(jumpCounter >=24 && jumpCounter <= 42)
+        else if (jumpCounter >= 24 && jumpCounter <= 42)
         {
             ascent = FALSE;
             //if (jumpCounter & 1 == 1)
-                ++willyYpos;
+            ++willyYpos;
         }
         else if (jumpCounter > 42)
             jump = FALSE;
-        
 
+    } //end if jump
 
-        // if (jumpCounter < maxJump - 1)
-        //     willyYpos-= jumpIncrement * 2;//move the y
-
-        // jumpCounter += jumpIncrement;//inc the counter
-	
-
-        // if (jumpCounter>=maxJump)//do the descent if willy has climaxed
-        // {
-        //     jumpIncrement = -jumpIncrement;
-        //     jumpCounter=maxJump;
-        //     ascent = FALSE;
-        // }
-
-        // //check for the jump being completed
-        // if (jumpCounter < 0)
-        // {
-        //     //	control = true;
-        //     jump = FALSE;
-        //     jumpIncrement =2;
-        // }
-
-        // //check for ceiling block - first 1
-        // // if (ascent && (l[lev][getX][getY-2] ==1) || (l[lev][getX][getY-2] ==2) )
-        // // {	
-        // //     willyYpos+=jumpIncrement * 4;
-        // // }
-
-        // // if (ascent && (l[lev][getX-1][getY-2] ==1) || 	(l[lev][getX-1][getY-2] ==2) )
-        // // {	
-        // //     willyYpos+=jumpIncrement * 4;
-        // // }	
-    }               //end if jump
-
-    //     //+2 is standing on the level
-    //     ZeroYMod = ( (willyYpos +16 - yOffset)%16 == 0 ? 0 : 1);
-
-    //check for willies body hitting right side walls
-       
-
-    if (topRightChar == 1 || topRightChar == 2 || middleRightChar == 1 || middleRightChar == 2)//changed from 0 
-	    rightAvailable = FALSE;
-
-    //     //fix the right bug
-    //     if (l[lev][getX][getY-1] ==1 || l[lev][getX][getY-1] ==2)
-	//         rightAvailable = FALSE;
-
-    //     //fix the right bug
-    //     if (l[lev][getX][getY-2] ==1 || l[lev][getX][getY-2] ==2)
-	//         rightAvailable = FALSE;
-
-
-    //     //////Fix the "Julie Bug"
-    //     if (modX ==12 && rightAvailable == false && right && l[lev][getX][getY]==0 && jump==false && falling==false)
-    //     {	
-    //         willyYPos +=4;
-	//         falling = TRUE;
-    //         control = FALSE;
-    //         willyDirection= 0;
-	//         willyFrameNo=2;
-    //         right=false;
-    //         willyXpos+=4;
-	//     }
-	
-    //     //do the travaltor business
-    //     if (rightAvailable && jump==FALSE)
-    //     {
-    //         if  ( ( l[lev][getX][getY] >= TRAV_RIGHT_MIN) && ( l[lev][getX][getY] <= TRAV_RIGHT_MAX) )
-	// 	        willyXpos+=4;
-    //         else if  ( ( l[lev][getX-1][getY] >= TRAV_RIGHT_MIN) && ( l[lev][getX-1][getY] <= TRAV_RIGHT_MAX) )
-	// 	        willyXpos+=4;
-    //     }
-
-    //     //make sure willy is in the correct place
-    //     if (willyXpos>456) 
-    //         willyXpos = 456;
-
-    if(right) 
-        willyDirection = RIGHT;
+    if (ascent == FALSE && modY == MOD_Y_TARGET)
+        if (( bottomLeftChar >= RIGHT_TRAV_MIN && bottomLeftChar <= RIGHT_TRAV_MAX) || ( bottomRightChar >= RIGHT_TRAV_MIN && bottomRightChar <= RIGHT_TRAV_MAX))
+            willyXpos += 1;
+        else if (( bottomLeftChar >= LEFT_TRAV_MIN && bottomLeftChar <= LEFT_TRAV_MAX) || ( bottomRightChar >= LEFT_TRAV_MIN && bottomRightChar <= LEFT_TRAV_MAX))
+            willyXpos -= 1;
 
     //check for right direction
-    if (right && rightAvailable)
-    {
-        //move the guy
+    if (right)
         willyXpos += 1;
 
-        ++willyFrameStep;
+    //Have we gone too far right
+    if (willyXpos > oldXpos)
+    {
+        y = (willyYpos - SPRITE_Y_OFFSET + 5) / 8;
+        x = (willyXpos - SPRITE_X_OFFSET + 16) / 8;
 
-        willyFrameNo = RightFrames[willyFrameStep];
+        peekAddress = 0x4000 + (y * 40) + x;
 
-        if (willyFrameNo == 255)
-        {
-            willyFrameStep = 0;
-            willyFrameNo = 0;
-        }
-        // if (willyFrameNo >=2)
-        //     willyFrameStep = - willyFrameStep;
+        topRightChar = (PEEK(peekAddress));
+        peekAddress += 40;
+        middleRightChar = (PEEK(peekAddress));
+        peekAddress += 40;
+        bottomRightChar = (PEEK(peekAddress));
 
-        // willyFrameNo += willyFrameStep;
-
-        // if (willyFrameNo ==0)
-        // {
-        //     willyFrameStep = -willyFrameStep;  
-        //     willyFrameNo = 0;
-        // }
+        if (topRightChar == 1 || topRightChar == 2 || middleRightChar == 1 || middleRightChar == 2 )
+            willyXpos = oldXpos;
     }
+    if (right)
+        willyFrameNo = RightFrames[willyXpos & 7];
 
-    //     ///////////////////////////////////
-    //     //check for willies body hitting left side walls
-    //     unsigned char leftAvailable = TRUE;
-    if (topLeftChar == 1 || topLeftChar == 2 || middleLeftChar == 1 || middleLeftChar == 2)//changed from 0 
-        leftAvailable = FALSE;
-    //     if ( (l[lev][getX-2][getY - 1+ ZeroYMod]==1 || l[lev][getX-2][getY - 1 + ZeroYMod]==2 ) && 	(willyXpos+16 - xOffset)%16==0) 
-	//         leftAvailable = FALSE;
+    //check for left direction
+    if (left)
+        willyXpos -= 1;
 
-    //     if ( (l[lev][getX-2][getY - 2  + ZeroYMod]==1 || l[lev][getX-2][getY - 2+ ZeroYMod]==2 ) &&  (willyXpos+16 - xOffset)%16==0) 
-	//         leftAvailable = FALSE;
+    //Have we gone too far right
+    if (willyXpos < oldXpos)
+    {
+        y = (willyYpos - SPRITE_Y_OFFSET + 5) / 8;
+        x = (willyXpos - SPRITE_X_OFFSET + 9) / 8;
 
-    //     //left bug fix
-    //     if (l[lev][getX-1][getY-1]==1 ||l[lev][getX-1][getY-1]==2)
-	//         leftAvailable= FALSE;
+        peekAddress = 0x4000 + (y * 40) + x;
 
-    //     if (l[lev][getX-1][getY-2]==1 ||l[lev][getX-1][getY-2]==2)
-	//         leftAvailable= FALSE;
+        topLeftChar = (PEEK(peekAddress));
+        peekAddress += 40;
+        middleLeftChar = (PEEK(peekAddress));
+        peekAddress += 40;
+        bottomLeftChar = (PEEK(peekAddress));
 
-
-    //////Fix the "Julie Bug"
-    // if (modX ==0 && leftAvailable == FALSE && left && l[lev][getX-1][getY]==0 && jump==FALSE && falling==FALSE)
-    // {
-    //     willyXpos+=4;
-    //     falling = TRUE;
-    //     willyDirection= 1;
-    //     control = FALSE;
-    //     willyFrameNo=2;
-    //     left=FALSE;
-    //     willyXpos-=4;
-    //     }
-
-	//     //do the travaltor business
-    //     if (leftAvailable && jump==FALSE)//note the 16 +
-    //     {
-    //         if  ( ( l[lev][getX][getY] >= TRAV_LEFT_MIN) && ( l[lev][getX][getY] <= TRAV_LEFT_MAX) || ( l[lev][getX-1][getY] >= TRAV_LEFT_MIN)	&& ( l[lev][getX-1][getY] <= TRAV_LEFT_MAX) )//travelator
-    //         {
-    //             willyXpos-=4;//if so move him
-
-    //             if (right && rightAvailable == FALSE)
-    //             {
-    //                 //if he`s trying to go right and he can`t move him back
-    //                 willyXpos+=4;}
-    //             }
-
-    //             //make sue willy is in the correct place
-    //             if (willyXpos<156) 
-    //                 willyXpos = 156;
-
-    //             if (left) 
-    //                 willyDirection = 1;
-
-    //check for left direction 
-    if (left && leftAvailable)
-    {	
-        willyXpos-=1;
-	
-        ++willyFrameStep;
-
-        willyFrameNo = LeftFrames[willyFrameStep];
-
-        if (willyFrameNo == 255)
-        {
-            willyFrameStep = 0;
-            willyFrameNo = 3;
-        }
-
+        if (topLeftChar == 1 || topLeftChar == 2 || middleLeftChar == 1 || middleLeftChar == 2 )
+            willyXpos = oldXpos;
     }
-
-    //             //check for disintergrating blocks
-    //             if ( ( l[lev][getX][getY] >= DISINTERGRATE_MIN )  && ( l[lev][getX][getY] <= DISINTERGRATE_MAX)  && modY  == 0 )//is he standing on a disintergrator
-	//                 l[lev][getX][getY]--;//if so register it with level object
-
-	
-    //             //check for disintergrating blocksII
-    //             if ( ( l[lev][getX-1][getY] >= DISINTERGRATE_MIN )  && 	( l[lev][getX-1][getY] <= DISINTERGRATE_MAX)  && modY  == 0 )//is he standing on a disintergrator
-	//                 l[lev][getX-1][getY]--;//if so register it with level object
-	
-    //         //printWilly(source, dest);
-
-
-    //         ////This bit fixes a nasty bug it fixes the symptoms but not the cause....NASTY!!!
-    //         if (modY==12)
-	//             bugfix++;
-	//         else 
-    //             bugfix = 0;
-                
-    //         if (bugfix>4)
-    //             wllyYpos+=4;
-
-    //         return ALIVE;//willy lives
-    //     }
+    if (left)
+        willyFrameNo = LeftFrames[willyXpos & 7];
 }
