@@ -47,6 +47,12 @@ unsigned char RIGHT_TRAV_MAX = 25;
 
 unsigned char RightFrames[] = {0, 0, 1, 1, 2, 2, 1, 1, 255};
 unsigned char LeftFrames[] = {3, 3, 4, 4, 5, 5, 4, 4, 255};
+
+extern unsigned int disintigratorLocations[16];
+extern unsigned char disintegratorCounters[16];
+extern unsigned char disintegratorCounter;
+
+
 // Control Variables
 void initWilly(void)
 {
@@ -83,13 +89,18 @@ unsigned int joyStickFire()
 
 unsigned char willyControl(void)
 {
-    unsigned modY; // 
+    unsigned char i = 0;
+    unsigned char modY; // 
     unsigned int rightAvailable = TRUE;
     unsigned int leftAvailable = TRUE;
     
+    unsigned int onLeftTravelator = FALSE;
+    unsigned int onRightTravelator = FALSE;
+
     unsigned char topLeftChar, topRightChar, middleLeftChar, middleRightChar, bottomLeftChar, bottomRightChar;
     unsigned char oldXpos, oldYpos;
     unsigned int peekAddress;
+    unsigned int temp;
 
     unsigned char y = (willyYpos - SPRITE_Y_OFFSET + 5) >> 3;
     unsigned char x = (willyXpos - SPRITE_X_OFFSET + 8) >> 3;
@@ -144,6 +155,9 @@ unsigned char willyControl(void)
     }
 
     modY = willyYpos & 7;
+    oldXpos = willyXpos;
+    oldYpos = willyYpos;
+
     if (ascent == FALSE && modY == MOD_Y_TARGET) //test for falling
     {
         if ((bottomLeftChar == 0) && (bottomRightChar == 0)) //your not standing on anything
@@ -169,6 +183,59 @@ unsigned char willyControl(void)
                 //
             } //Willy is dead
             fallCounter = 0;
+
+            if (bottomRightChar >= DISINTERGRATE1 && bottomRightChar <= DISINTERGRATE3  )
+            {
+                // theres a disintegrator
+                for (i = 0; i < disintegratorCounter; i++)
+                {
+                    if (disintigratorLocations[i] == peekAddress)
+                    {
+                        --disintegratorCounters[i];
+                        if (disintegratorCounters[i] < DISINTIGRATE_4 )
+                        {
+                            POKE(peekAddress, 0);
+                            disintigratorLocations[i] =0 ;
+                            
+                        }
+                        else if (disintegratorCounters[i] < DISINTIGRATE_3 )
+                            POKE(peekAddress, DISINTERGRATE3);
+                        else if (disintegratorCounters[i] < DISINTIGRATE_2 )
+                            POKE(peekAddress, DISINTERGRATE2);
+                    }
+                }
+            }
+
+            if (bottomLeftChar >= DISINTERGRATE1 && bottomLeftChar <= DISINTERGRATE3  )
+            {
+                --peekAddress;
+                // theres a disintegrator
+                for (i = 0; i < disintegratorCounter; i++)
+                {
+                    if (disintigratorLocations[i] == peekAddress)
+                    {
+                        --disintegratorCounters[i];
+                        if (disintegratorCounters[i] < DISINTIGRATE_4 )
+                        {
+                            POKE(peekAddress, 0);
+                            disintigratorLocations[i] =0 ;
+                            
+                        }
+                        else if (disintegratorCounters[i] < DISINTIGRATE_3 )
+                            POKE(peekAddress, DISINTERGRATE3);
+                        else if (disintegratorCounters[i] < DISINTIGRATE_2 )
+                            POKE(peekAddress, DISINTERGRATE2);
+                    }
+                }
+            }
+
+            if (bottomLeftChar >= DISINTERGRATE1 && bottomLeftChar <= DISINTERGRATE3  )
+            {
+                // theres a disintegrator
+                
+            }
+
+            
         }
     }
 
@@ -177,9 +244,6 @@ unsigned char willyControl(void)
         willyYpos += 1;
         fallCounter += 1;
     }
-
-    oldXpos = willyXpos;
-    oldYpos = willyYpos;
 
     if (control) // is willy in a state where player has control
     {
@@ -211,7 +275,7 @@ unsigned char willyControl(void)
         {
             //if (jumpCounter & 1 == 1)
             --willyYpos;
-        }
+        }      
         else if (jumpCounter >= 24 && jumpCounter <= 42)
         {
             ascent = FALSE;
@@ -221,13 +285,22 @@ unsigned char willyControl(void)
         else if (jumpCounter > 42)
             jump = FALSE;
 
+        // Ensure Willy can land the jump at the top
+        if (jumpCounter >= 18)
+            ascent = FALSE;
     } //end if jump
 
     if (ascent == FALSE && modY == MOD_Y_TARGET)
         if (( bottomLeftChar >= RIGHT_TRAV_MIN && bottomLeftChar <= RIGHT_TRAV_MAX) || ( bottomRightChar >= RIGHT_TRAV_MIN && bottomRightChar <= RIGHT_TRAV_MAX))
+        {    
             willyXpos += 1;
+            onRightTravelator = TRUE;
+        }
         else if (( bottomLeftChar >= LEFT_TRAV_MIN && bottomLeftChar <= LEFT_TRAV_MAX) || ( bottomRightChar >= LEFT_TRAV_MIN && bottomRightChar <= LEFT_TRAV_MAX))
+        {    
             willyXpos -= 1;
+            onLeftTravelator  = TRUE;
+        }
 
     //check for right direction
     if (right)
@@ -236,7 +309,7 @@ unsigned char willyControl(void)
     //Have we gone too far right
     if (willyXpos > oldXpos)
     {
-        y = (willyYpos - SPRITE_Y_OFFSET + 5)  >> 3;
+        y = (willyYpos - SPRITE_Y_OFFSET + 5 + jump)  >> 3;
         x = (willyXpos - SPRITE_X_OFFSET + 16)  >> 3;
 
         peekAddress = 0x4000 + (y * 40) + x;
@@ -244,24 +317,33 @@ unsigned char willyControl(void)
         topRightChar = (PEEK(peekAddress));
         peekAddress += 40;
         middleRightChar = (PEEK(peekAddress));
-        peekAddress += 40;
+        
+        y = (willyYpos - SPRITE_Y_OFFSET + 20 + jump)  >> 3;
+        peekAddress = 0x4000 + (y * 40) + x;
+
         bottomRightChar = (PEEK(peekAddress));
 
-        if (topRightChar == 1 || topRightChar == 2 || middleRightChar == 1 || middleRightChar == 2 )
+        if (topRightChar == 1 || topRightChar == 2 || middleRightChar == 1 || middleRightChar == 2  || bottomRightChar == 1 || bottomRightChar == 2 )
             willyXpos = oldXpos;
     }
     if (right)
-        willyFrameNo = RightFrames[willyXpos & 7];
+    {
+        if  (onRightTravelator)
+            willyFrameNo = RightFrames[6 + (willyXpos>>1) & 7];
+        else    
+            willyFrameNo = RightFrames[6 + willyXpos & 7];
+    }
+        
 
     //check for left direction
     if (left)
         willyXpos -= 1;
 
-    //Have we gone too far right
+    //Have we gone too far left
     if (willyXpos < oldXpos)
     {
-        y = (willyYpos - SPRITE_Y_OFFSET + 5)  >> 3;
-        x = (willyXpos - SPRITE_X_OFFSET + 9)  >> 3;
+        y = (willyYpos - SPRITE_Y_OFFSET + 5 + jump)  >> 3;
+        x = (willyXpos - SPRITE_X_OFFSET + 8)  >> 3;
 
         peekAddress = 0x4000 + (y * 40) + x;
 
@@ -271,11 +353,37 @@ unsigned char willyControl(void)
         peekAddress += 40;
         bottomLeftChar = (PEEK(peekAddress));
 
-        if (topLeftChar == 1 || topLeftChar == 2 || middleLeftChar == 1 || middleLeftChar == 2 )
+        y = (willyYpos - SPRITE_Y_OFFSET + 20 + jump)  >> 3;
+        peekAddress = 0x4000 + (y * 40) + x;
+
+        bottomLeftChar = (PEEK(peekAddress));
+
+        if (topLeftChar == 1 || topLeftChar == 2 || middleLeftChar == 1 || middleLeftChar == 2 || bottomLeftChar == 1 || bottomLeftChar == 2 )
             willyXpos = oldXpos;
     }
     if (left)
-        willyFrameNo = LeftFrames[willyXpos & 7];
+    {
+        if (onLeftTravelator)
+            willyFrameNo = LeftFrames[5 + (willyXpos >> 1) & 7];
+        else
+            willyFrameNo = LeftFrames[5 + willyXpos & 7];
+    }
+        
+
+    if (willyYpos < oldYpos)
+    {
+        unsigned char y = (willyYpos - SPRITE_Y_OFFSET + 5) >> 3;
+        unsigned char x = (willyXpos - SPRITE_X_OFFSET + 8) >> 3;
+
+        peekAddress = 0x4000 + (y * 40) + x;
+
+        topLeftChar = (PEEK(peekAddress));
+        ++peekAddress;
+        topRightChar = (PEEK(peekAddress));
+
+        if (topLeftChar == 1 || topLeftChar == 2 || topRightChar == 1 || topRightChar == 2)
+            willyYpos = oldYpos;
+    }
 
     // if (willyYpos < oldYpos)
     //     if (topLeftChar == 1 || topLeftChar == 2 || topRightChar == 1 || topRightChar == 2)

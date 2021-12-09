@@ -10,6 +10,10 @@ unsigned int currentScreenLoc;
 unsigned int travelatorLocations[64];
 unsigned char travelatorChars[64];
 
+unsigned int disintigratorLocations[16];
+unsigned char disintegratorCounters[16];
+unsigned char disintegratorCounter = 0;
+
 unsigned int noteColourLocations[8];
 unsigned char noteAvailable[64];
 unsigned char noteCounter = 0;
@@ -23,7 +27,7 @@ unsigned char level1[] = {1,23 ,0,3 ,26,1 ,0,4 ,26,1 ,0,6 ,26,1 ,0,4 ,1,2 ,0,20 
 unsigned char level2[] = {1,23 ,0,9 ,26,1 ,0,10 ,1,2 ,0,20 ,1,2 ,0,20 ,1,2 ,0,20 ,1,2 ,0,15 ,26,1 ,0,4 ,1,2 ,0,6 ,8,1 ,11,6 ,14,1 ,4,1 ,0,5 ,1,2 ,0,9 ,26,1 ,0,10 ,1,2 ,0,2 ,3,3 ,0,15 ,1,2 ,0,19 ,26,1 ,1,2 ,3,1 ,0,6 ,4,6 ,0,7 ,1,2 ,26,1 ,0,19 ,1,2 ,0,13 ,8,1 ,11,3 ,14,1 ,0,2 ,1,2 ,0,20 ,1,2 ,3,4 ,0,15 ,3,1 ,1,2 ,0,20 ,1,2 ,26,1 ,0,3 ,3,9 ,0,6 ,3,1 ,1,2 ,0,9 ,2,1 ,0,10 ,1,2 ,3,1 ,0,8 ,2,1 ,0,3 ,3,4 ,0,3 ,1,2 ,0,9 ,2,1 ,26,1 ,0,9 ,1,23,255};
 
 unsigned char* levels[] = {level1, level2};
-unsigned char levelIndex = 0;
+unsigned char levelIndex = 1;
 
 unsigned char hiScore[] = {61, 36, 34, 35, 0, 72, 30, 42, 45, 32};
 
@@ -57,6 +61,12 @@ void initScreen(void)
     {
         travelatorChars[i]= 0;    
         travelatorLocations[i] = 0;
+    }   
+
+    for (i = 0; i < 16;++i)
+    {
+        disintegratorCounters[i]= 0;    
+        disintigratorLocations[i] = 0;
     }   
 
     travelatorCount = 0;
@@ -98,6 +108,11 @@ void initScreen(void)
             {
                 noteAvailable[noteCounter] = 1;
                 noteColourLocations[noteCounter++] = colourAddress + xIndex;
+            }
+            else if (charRead == 5)
+            {
+                disintigratorLocations[disintegratorCounter] = currentScreenLoc;
+                disintegratorCounters[disintegratorCounter++] = DISINTIGRATE_1;
             }
 
             POKE(currentScreenLoc, charRead);

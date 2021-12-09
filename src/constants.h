@@ -66,4 +66,9 @@
 #define RIGHT 0
 #define LEFT 1
 
+#define DISINTIGRATE_1  40
+#define DISINTIGRATE_2  30
+#define DISINTIGRATE_3  20
+#define DISINTIGRATE_4  10
+
 #endif
